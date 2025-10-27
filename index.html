@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arya AI</title>
+
+<style>
+:root {
+  --bg-color:#ffffff;
+  --text-color:#000000;
+  --accent:#007bff;
+  --bubble-ai:#eaeaea;
+}
+[data-theme="dark"] {
+  --bg-color:#0d0d0d;
+  --text-color:#ffffff;
+  --accent:#00a2ff;
+  --bubble-ai:#2a2a2a;
+}
+
+body {
+  margin:0;
+  font-family:Poppins,Arial;
+  background:var(--bg-color);
+  color:var(--text-color);
+  overflow:hidden;
+}
+
+/* SPLASH / LOADING */
+#splash {
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  z-index:10000;
+  transition:opacity .6s;
+}
+#splash .logo {
+  width:150px;
+  height:150px;
+  border-radius:22px;
+  background:url('https://b.top4top.io/p_3586vwkuh1.jpg') center/cover no-repeat;
+}
+#splash .title {
+  font-size:34px;
+  font-weight:700;
+  color:#fff;
+}
+.loader {
+  width:55px;
+  height:55px;
+  border:5px solid rgba(255,255,255,0.3);
+  border-top:5px solid #fff;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin { 100%{transform:rotate(360deg);} }
+
+/* HEADER */
+header {
+  position:sticky;
+  top:0;
+  width:100%;
+  background:var(--bg-color);
+  border-bottom:1px solid #ddd;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:99;
+}
+.menu-btn {
+  background:none;
+  border:none;
+  font-size:26px;
+  color:var(--text-color);
+}
+
+/* MENU KIRI */
+#sideMenu {
+  position:fixed;
+  left:-260px;
+  top:0;
+  width:260px;
+  height:100%;
+  background:#111;
+  color:#fff;
+  z-index:2000;
+  transition:0.35s ease;
+  padding-top:70px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  box-shadow:3px 0 12px rgba(0,0,0,0.5);
+}
+#sideMenu.open { left:0; }
+#sideMenu .title {
+  position:absolute;
+  top:20px;
+  left:20px;
+  font-size:22px;
+  font-weight:bold;
+}
+#sideMenu button {
+  width:100%;
+  padding:15px 22px;
+  background:transparent;
+  border:none;
+  text-align:left;
+  font-size:17px;
+  color:#f1f1f1;
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+#sideMenu button:hover {
+  background:rgba(255,255,255,0.08);
+}
+
+/* OVERLAY */
+#overlay {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  z-index:1999;
+}
+#overlay.show { display:block; }
+
+/* CHAT */
+#messages {
+  height:calc(100vh - 135px);
+  overflow-y:auto;
+  padding:12px;
+}
+.bubble {
+  padding:12px 14px;
+  border-radius:12px;
+  margin-bottom:10px;
+  max-width:80%;
+  font-size:15px;
+}
+.user {
+  background:var(--accent);
+  color:#fff;
+  margin-left:auto;
+}
+.ai {
+  background:var(--bubble-ai);
+  color:var(--text-color);
+}
+
+/* INPUT */
+#inputArea {
+  width:100%;
+  padding:12px;
+  border-top:1px solid #bbb;
+  background:var(--bg-color);
+  display:flex;
+  gap:10px;
+}
+#textInput {
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #666;
+  outline:none;
+  background:var(--bg-color);
+  color:var(--text-color);
+}
+#sendBtn {
+  padding:0 18px;
+  background:var(--accent);
+  border:none;
+  color:#fff;
+  border-radius:10px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOADING -->
+<div id="splash">
+  <div class="logo"></div>
+  <div class="title">Arya AI</div>
+  <div class="loader"></div>
+</div>
+
+<!-- MENU SAMPING -->
+<div id="sideMenu">
+  <div class="title">Menu</div>
+  <button id="premiumBtn">Mode Plus</button>
+  <button id="contactOwnerBtn">Kontak Developer</button>
+  <button id="apiKeyInfo">API Locked</button>
+</div>
+<div id="overlay"></div>
+
+<header>
+  <button class="menu-btn" id="menuButton">☰</button>
+  <strong>Arya AI</strong>
+  <button id="themeToggle">🌙/☀️</button>
+</header>
+
+<section id="messages"></section>
+
+<div id="inputArea">
+  <input id="textInput" placeholder="Ketik pesan..." />
+  <button id="sendBtn">➤</button>
+</div>
+
+<script>
+/* Logo Locked Config */
+const LOGO_URL = "https://i.top4top.io/s_3587f9rro0.jpg";
+document.querySelector('#splash .logo')
+.style.background = `url(${LOGO_URL}) center/cover no-repeat`;
+
+/* Theme */
+document.getElementById('themeToggle').onclick = ()=>{
+  const d=document.documentElement;
+  const n=d.getAttribute('data-theme')==="dark"?"light":"dark";
+  d.setAttribute('data-theme',n);
+};
+
+/* Menu */
+const sideMenu=document.getElementById('sideMenu');
+const overlay=document.getElementById('overlay');
+document.getElementById('menuButton').onclick=()=>{
+  sideMenu.classList.add('open');
+  overlay.classList.add('show');
+};
+overlay.onclick=()=>{
+  sideMenu.classList.remove('open');
+  overlay.classList.remove('show');
+};
+
+/* API Kunci */
+document.getElementById('apiKeyInfo').onclick=()=>{
+  alert("Logo & API Key Dikunci oleh Script.\nTidak dapat diubah.");
+};
+
+/* Gemini API */
+const API_KEY="AIzaSyBnlU_NPWn8VsfYKgpmnXs-x_I4KUPyIDE";
+const MODEL="gemini-2.0-flash";
+const URL=`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+function addBubble(sender,text){
+  const b=document.createElement('div');
+  b.className="bubble "+sender;
+  b.innerHTML=text;
+  messages.appendChild(b);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+document.getElementById('sendBtn').onclick=async()=>{
+  const t=textInput.value.trim();
+  if(!t) return;
+  addBubble('user',t);
+  textInput.value="";
+  addBubble('ai',"Sedang mengetik...");
+
+  const r=await fetch(URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ contents:[{parts:[{text:t}]}] })
+  });
+  const d=await r.json();
+  messages.lastChild.remove();
+  addBubble('ai',d.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf error.");
+};
+
+/* Loading 10 detik */
+setTimeout(()=>{
+  splash.style.opacity="0";
+  setTimeout(()=>{
+    splash.style.display="none";
+  },600);
+},10000);
+</script>
+
+</body>
+</html>
